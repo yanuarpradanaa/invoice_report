@@ -1,0 +1,281 @@
+<?xml version="1.0"?>
+<openerp>
+    <data>
+        
+        <template id="invoice_report.qweb_inv_pp">
+            <t t-call="report.html_container">
+                <t t-foreach="docs" t-as="o">
+                    <t t-call="invoice_report.qweb_inv_pp_document" t-lang="o.partner_id.lang"/>
+                </t>
+            </t>
+        </template>
+
+        <template id="invoice_report.qweb_inv_pp_document"  >
+
+
+        <t t-name="invoice_report.qweb_inv_pp_document">
+            
+            <t t-call="report.external_layout">
+
+                <t t-set="o" t-value="o.with_context({'lang':o.partner_id.lang})"/>
+                
+                <div class="page" style="font-family: Consolas; font-size: 15px !important;" >
+                
+                <div class="row">
+                    <div class="col-xs-6">
+                        <span>CV. Prima Print</span> <br/> <br/>
+                        <span>Jl. Petemon III No.52</span><br/>
+                        <span>+62 31 5457439</span><br/>
+                        <span>Surabaya 6051</span><br/>
+                        <span>Indonesia</span><br/>
+                    </div>
+                    <div name="invoice_address" class="col-xs-offset-7">
+                        <!-- <span><strong>Customer Address:</strong></span> -->
+                        <span>Customer Address:</span>
+                        <address t-field="o.partner_id" t-options='{"widget": "contact", "fields": ["address", "name", "phone", "fax"], "no_marker": True}'/> <!-- , "phone_icons": True -->
+                        <span t-if="o.partner_id.vat">TIN: <span t-field="o.partner_id.vat"/></span>
+                    </div>
+                </div>
+            <!--<div class="col-xs-5">-->
+            <h2>
+                <span t-if="o.type == 'out_invoice' and (o.state == 'open' or o.state == 'paid')">Invoice</span>
+                <span t-if="o.type == 'out_invoice' and o.state == 'proforma2'">PRO-FORMA</span>
+                <span t-if="o.type == 'out_invoice' and o.state == 'draft'">Draft Invoice</span>
+                <span t-if="o.type == 'out_invoice' and o.state == 'cancel'">Cancelled Invoice</span>
+                <span t-if="o.type == 'out_refund'">Refund</span>
+                <span t-if="o.type == 'in_refund'">Vendor Refund</span>
+                <span t-if="o.type == 'in_invoice'">Vendor Bill</span>
+                <span t-field="o.number"/>
+            </h2>
+            <!--</div>-->
+            <div class="row mt32 mb32">
+                <div class="col-xs-2" t-if="o.name">
+                    <!-- <strong>No Nota:</strong> -->
+                    <span>No. SJ:</span>
+                    <p t-field="o.name"/>
+                </div>
+                <div class="col-xs-2" t-if="o.date_invoice">
+                    <!-- <strong>Invoice Date:</strong> -->
+                    <span>Invoice Date:</span>
+                    <p t-field="o.date_invoice"/>
+                </div>
+                <div class="col-xs-2" t-if="o.date_due and o.type == 'out_invoice' and (o.state == 'open' or o.state == 'paid')">
+                    <!-- <strong>Due Date:</strong> -->
+                    <span>Due Date:</span>
+                    <p t-field="o.date_due"/>
+                </div>
+                <div class="col-xs-2" t-if="o.origin">
+                    <!-- <strong>Source:</strong> -->
+                    <span>Source:</span>
+                    <p t-field="o.origin"/>
+                </div>
+                <div class="col-xs-2" t-if="o.partner_id.ref">
+                    <!-- <strong>Customer Code:</strong> -->
+                    <span>Customer Code:</span>
+                    <p t-field="o.partner_id.ref"/>
+                </div>
+                <div name="reference" class="col-xs-2" t-if="o.reference">
+                    <!-- <strong>No Nota:</strong> -->
+                    <span>No Nota:</span>
+                    <p t-field="o.reference"/>
+                </div>
+            </div>
+
+            <!-- Is there a discount on at least one line? -->
+            <t t-set="display_discount" t-value="any([l.discount for l in o.invoice_line_ids])"/>
+
+            <table class="table table-condensed">
+                <thead>
+                    <tr>
+                        <th style="font-weight: normal;">Code</th>
+                        <th style="font-weight: normal;">Description</th>
+                        <th style="font-weight: normal;" class="hidden">Source Document</th>
+                        
+                        <!-- <t t-if="o.invoice_line_ids.product_id.categ_id.name != 'Product Lainnya'"> -->
+                            <th style="font-weight: normal;" class="text-right" >Category</th>
+                        <!-- </t> -->
+                        
+                        
+                        <th style="font-weight: normal;" class="text-right">Quantity</th>
+                        <th style="font-weight: normal;" class="text-right">Unit Price</th>
+                        <th t-if="display_discount" style="font-weight: normal;" class="text-right">Disc.(%)</th>
+                        <th style="font-weight: normal;" class="text-right">Taxes</th>
+                        <th style="font-weight: normal;" class="text-right">Tax Excluded Price</th>
+                    </tr>
+                </thead>
+                <tbody class="invoice_tbody">
+                    <tr t-foreach="o.invoice_line_ids" t-as="l">
+
+                        <td style="border: none;">
+                            <t t-if="l.product_id.produk_code">
+                                <span t-field="l.product_id.produk_code"/>
+                            </t>
+                            <t t-else="">
+                                <span>-</span>
+                            </t>
+                        </td>
+                        
+                        <td style="border: none;"><span t-field="l.name"/></td>
+                        <td style="border: none;" class="hidden"><span t-field="l.origin"/></td>
+                        
+                        <td style="border: none;" class="text-right">
+                            <t t-if="l.product_id.categ_id.name != 'Product Lainnya'">
+                                <span t-field="l.product_id.categ_id.name"/>    
+                            </t>
+                            <t t-if="l.product_id.categ_id.name == 'Product Lainnya'">
+                                <span>Lainnya</span>    
+                            </t>
+                        </td>
+                            
+
+                        <td style="border: none;" class="text-right">
+                            <span t-field="l.quantity"/>
+                            <span t-field="l.uom_id" groups="product.group_uom"/>
+                        </td>
+                        <td style="border: none;" class="text-right">
+                            <span t-field="l.price_unit"/>
+                        </td>
+                        <td style="border: none;" t-if="display_discount" class="text-right">
+                            <span t-field="l.discount"/>
+                        </td>
+                        <td style="border: none;" class="text-right">
+                            <span t-esc="', '.join(map(lambda x: (x.description or x.name), l.invoice_line_tax_ids))"/>
+                        </td>
+                        <td style="border: none;" class="text-right">
+                            <span t-field="l.price_subtotal" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="row">
+
+                <div class="col-xs-4 pull-right">
+                    <table class="table table-condensed">
+                        <tr class="border-black">
+                            <!-- <td><strong>Subtotal</strong></td> -->
+                            <td>Subtotal</td>
+                            <td class="text-right">
+                                <span t-field="o.amount_untaxed" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
+                            </td>
+                        </tr>
+                        <t t-foreach="o._get_tax_amount_by_group()" t-as="amount_by_group">
+                            <tr>
+                                <!-- <td><span t-esc="amount_by_group[0] if len(o.tax_line_ids) &gt; 1 else (o.tax_line_ids.tax_id.description or o.tax_line_ids.tax_id.name)"/></td> -->
+                                <td>Tax 10%</td>
+                                <td class="text-right">
+                                    <span t-esc="amount_by_group[2]"/>
+                                </td>
+                            </tr>
+                        </t>
+                        <tr class="border-black">
+                            <!-- <td><strong>Total</strong></td> -->
+                            <td>Total</td>
+                            <td class="text-right">
+                                 <span t-field="o.amount_total" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            <div class="col-xs-8" t-if="o.picking_ids">
+                    <table class="table table-condensed" style="width:100%;font-size:15px;">
+                        <thead>
+                            <tr>
+                                <th style="font-weight: normal;" width="25%">No. SJ</th>
+                                
+                                <!-- <th style="font-weight: normal;" width="25%">Tracking References</th>
+                            -->
+                            </tr>
+                        </thead>
+                        <tbody style="font-size:14px;">
+                                <tr t-foreach="o.picking_ids" t-as="picking">
+
+                                    <td>
+                                        <span> <t t-esc="picking.name"/>  </span>
+                                    </td>
+                                    <!-- <td>
+                                        <span> <t t-esc="picking.carrier_tracking_ref"/> </span>
+                                    </td> -->
+
+                                </tr>
+
+                        </tbody>
+                    </table>
+                </div>
+            <!-- DO NOT REMOVE THIS TABLE. MANDATORY IN SOME COUNTRIES -->
+            <!--<div class="col-xs-6"> t-if="o.type == 'in_invoice'">
+                    <table class="table table-condensed">
+                        <thead>
+                            <tr>
+                                <th>Tax</th>
+                                <th class="text-right">Base</th>
+                                <th class="text-right">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="o.tax_line_ids" t-as="t">
+                                <td><span t-field="t.tax_id.description"/></td>
+                                <td class="text-right">
+                                    <span t-field="t.base" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
+                                </td>
+                                <td class="text-right">
+                                    <span t-field="t.amount" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>-->
+
+
+                </div>
+
+            <p t-if="o.comment">
+                <!-- <strong>Comment:</strong> -->
+                Comment:
+                <span t-field="o.comment"/>
+            </p>
+            <!-- <p t-if="o.payment_term_id">
+                <span t-field="o.payment_term_id.note"/>
+            </p>
+        -->
+            <p t-if="o.fiscal_position_id.note">
+                <!-- <strong>Fiscal Position Remark:</strong> -->
+                Fiscal Position Remark:
+                <span t-field="o.fiscal_position_id.note"/>
+            </p>
+                    <!-- Tanda tangan -->
+            <br/>
+            <br/>
+        <!--     <div class="col-xs-4">
+               <table>
+                  <tr><td width="5px"/>
+                        <td width="150px" align="center">Pembuat,</td>
+                        <td width="5px"/>
+                  </tr>
+                  <tr><td> <br/><br/><br/><br/></td></tr>
+                  <tr><td>(</td>
+                        <td align="center" style="font-size: 14px !important;">Tanda Tangan,Tanggal</td>
+                        <td>)</td>
+                  </tr>
+               </table>
+             </div> -->
+
+             <div class="col-xs-4 pull-right">
+               <table>
+                  <tr><td width="5px"/>
+                        <td width="150px" align="center">Regards,</td>
+                        <td width="5px"/>
+                  </tr>
+                  <tr><td> <br/><br/><br/><br/></td></tr>
+                  <tr><td>(</td>
+                        <td align="center" style="font-size: 14px !important;">....................</td>
+                        <td>)</td>
+                  </tr>
+               </table>
+             </div>
+        </div>
+            </t>
+        </t>
+        </template>
+    </data>
+</openerp>

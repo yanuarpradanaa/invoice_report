@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<data>
+	<report
+         id="inv_pp"
+        model="account.invoice"
+        string="Invoice PP"
+        report_type="qweb-pdf"
+        name="invoice_report.qweb_inv_pp"
+        file="invoice_report.qweb_inv_pp"
+        attachment="('Inv2_PP_'+(object.number or '').replace('/','')+'.pdf')"
+        usage="default"/>
+		<!--print_report_name="(object.state in ('open','paid')) and (('SuratJalanPP_' + object.number or '').replace('/','')+'.pdf')"-->
+
+        <!-- <record id="invoice_report2.inv_pp" model="ir.actions.report.xml">
+                <field name="paperformat_id" ref="pp_layout_potrait.paperformat_pp"/>
+        </record>
+        -->
+		</data>
+</odoo>
